@@ -15,5 +15,5 @@ by e.g.  color=#FFFF00  or  color=rgb(255,255,0)  defined color FULLSCREEN.
 
 **pickcolor**   : *get color interactively from screen pixel* ::
 **selectcolor** : *select color using color selection dialog* ::
-**showcolor**   : *available in  color  env. variable FULLSCREEN* ::
+**showcolor**   : *set previously as value of env. variable `color`* ::
 **pickselshow** : *select (or pick aborting selection) the color to show it finally FULLSCREEN*
