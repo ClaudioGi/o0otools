@@ -2,28 +2,25 @@
 # ======================================================================
 #                  FULLSCREEN viewing of COLORS
 # ----------------------------------------------------------------------
-#Aliases and functions for choosing a color and/or showing a previously
+# Aliases and functions for choosing a color and/or showing a previously
 # by e.g.  color=#FFFF00  or  color=rgb(255,255,0)  defined color 
-# FULLSCREEN. Requirements:  
-#   convert(pckg: imagmagick)  feh  gpick  xclip  xdotool  zenity
-#    ~ $ apt install imagemagick feh gpick xclip xdotool zenity
+# in FULLSCREEN mode of the display/screen. Requirements:  
+#   convert(pckg: imagmagick)  feh  gpick  xsel  xdotool  zenity
+#    ~ $ apt install imagemagick feh gpick xsel xdotool zenity
 # Provided commands: 
 #   --  pickcolor   :  get color interactively from screen pixel 
 #   --  selectcolor :  select color using color selection dialog 
 #   --  showcolor   :  available in  color  env. variable FULLSCREEN
 #   --  pickselshow :  select (or pick aborting selection) the color 
-#                      to show it finally FULLSCREEN
-# All supporting <Escape> for exiting them. 
-# To make these commands available without pasting this script into the 
-# ~/.bashrc file use the  source  command or the  .  dot prefix : 
-#               ~ $ . fullPathShellScriptFileName 
+#                      in order to show it in FULLSCREEN mode
+# All commands support <Escape> for exiting them. 
 # ----------------------------------------------------------------------
 color=#FF0000            # default color
 imgpath="/A/o/colors/"   # default path for saving solid color images
 required_commands=(
-  "convert"     "feh" "gpick" "xclip" "xdotool" "zenity")
+  "convert"     "feh" "gpick" "xsel" "xdotool" "zenity")
 required_packages=(
-  "imagemagick" "feh" "gpick" "xclip" "xdotool" "zenity") 
+  "imagemagick" "feh" "gpick" "xsel" "xdotool" "zenity") 
 missing_commands=()
 # Check if required commands are available
 for cmd in "${required_commands[@]}"; do
@@ -50,44 +47,47 @@ if [[ ${#missing_commands[@]} -gt 0 ]]; then
     esac
 else
     if [[ -n "$o0odebug" ]]; then
-        echo "All required commands are available."
+        echo "Commands related to fullscreen color viewing are available."
     fi
 fi
 
 function selectcolor {
   local colorchoice=$(
-                zenity --color-selection --show-palette --color=#0000FF)
+             zenity --color-selection --show-palette --color="#0000FF");
   if [[ -n $colorchoice ]]; then
-    # Provide the selected color two ways: 
-    echo "$colorchoice" | xclip -selection clipboard 
-    #  v--  as env-variable and as clipboard --^-- content
-    color=$colorchoice  # and set 
-    echo " color=$color in clipboard and 'color' env. variable."
-    echo "Use  showcolor  to display the color fullscreen."
+    # The selected color will be provided in three different ways:
+    ### 1. as clipboard content for pasting it from clipboard:
+    echo $colorchoice | xsel -i --clipboard
+    ### 2. as environment variable: 
+    color=$colorchoice; 
+    ### 3. and as output to stdout: 
+    echo $colorchoice;
   else
-    echo "selectcolor exit:  run pickcolor"
-    pickcolor
+    #echo "selectcolor exit: running pickcolor"
+    pickcolor;
   fi
 }
+
 function pickcolor {
     # Choose a display/screen pixel by clicking on it with the mouse 
     # in order to provide its color on clipboard and in the  color  
     # environment variable. Requires installed  gpick  and  xclip  .
     # --------------------------------------------------------------    
-    echo -n | xclip -selection clipboard # set clipboard to "" 
+    echo -n | xsel -i --clipboard # set clipboard to "" 
     #  ^-- provides clean exit on Escape without picking a color
     gpick --pick --single # --single blocks further code execution	
     if [[ $? -eq 0 ]]; then
-        local pick=$(xclip -o -selection clipboard)
+        local pick=$(xsel -o --clipboard)
         if [[ -n $pick ]]; then
             color=$pick
-            echo " color=$color in clipboard and 'color' env. variable."
-            echo "Use  showcolor  to display the color fullscreen."
+	    echo $pick
         else
-            echo "pickcolor: exit"
+            #echo "pickcolor: exit"
+	    echo $color
         fi
     else
-        echo "pickcolor: exit"
+        #echo "pickcolor: exit"
+	echo $color
     fi
 }
 # Single quotes preserve the literal value of each character within 
@@ -98,7 +98,7 @@ alias showcolor='
     if [[ ! -f $imgfile ]]; then 
         convert -size  $geom xc:$color $imgfile; 
     fi; 
-    feh --fullscreen --hide-pointer $imgfile
+    feh --fullscreen --hide-pointer $imgfile;
 '#saila
 # Below the breakdown of the above code: 
 #  - get screen/display geometry (e.g. 1920x1080) using xdotool and tr
@@ -108,4 +108,5 @@ alias showcolor='
 #      to create and save a solid color image with screen/display size
 #  - using  feh  to show the image fullscreen hiding the mouse pointer    
 alias pickselshow='selectcolor; showcolor'
-o0otools="pickcolor selectcolor showcolor pickselshow  $o0otools"
+o0otools="pickcolor selectcolor showcolor pickselshow
+$o0otools"
